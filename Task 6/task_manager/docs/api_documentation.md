@@ -224,7 +224,7 @@ go run main.go
     "id": "68790b1719fc9d12d16e66d0",
     "title": "Learn MongoDB",
     "description": "Update Description",
-    "date": "2025-07-20",
+    "date": "2025-07-23",
     "status": "In progress"
   }
 ]
@@ -247,7 +247,7 @@ go run main.go
   "id": "68790b1719fc9d12d16e66d0",
   "title": "Learn MongoDB",
   "description": "Update Description",
-  "date": "2025-07-20",
+  "date": "2025-07-23",
   "status": "In progress"
 }
 ```
@@ -291,7 +291,7 @@ go run main.go
 {
   "title": "Learn MongoDB",
   "description": "Practice MongoDB",
-  "date": "2025-07-20",
+  "date": "2025-07-23",
   "status": "In progress"
 }
 ```
@@ -351,12 +351,12 @@ go run main.go
 [
   {
     "id": "664f1a2b3c4d5e6f7a8b9c0d",
-    "username": "alice",
+    "username": "your_username",
     "role": "user"
   },
   {
     "id": "664f1a2b3c4d5e6f7a8b9c0e",
-    "username": "bob",
+    "username": "your_username",
     "role": "admin"
   }
 ]
@@ -379,3 +379,4 @@ go run main.go
   "error": "Forbidden"
 }
 ```
+- **400/404:** For bad input or not found.
