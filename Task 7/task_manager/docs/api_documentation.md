@@ -1,4 +1,4 @@
-# Task Manager API Documentation (Beginner Version)
+# Task Manager API Documentation 
 
 This is a simple guide for using the Task Manager API. It explains how to register, log in, use tokens, and what each endpoint does. Everything is organized using Clean Architecture.
 
@@ -13,6 +13,16 @@ task-manager/
 ├── Usecases/        # App logic (register, login, tasks)
 └── docs/            # Documentation
 ```
+
+
+### How Clean Architecture Works Here
+
+- **Delivery**: Handles HTTP requests and responses. It does not contain business logic.
+- **Usecases**: Contains all the main app logic (like registering, logging in, creating tasks). This is where business rules live.
+- **Domain**: Defines the main objects (like User and Task) and interfaces. These are just plain Go structs, no JSON tags or framework stuff.
+- **Repositories**: Handles all database operations. The usecase talks to the repository using interfaces, not direct DB code.
+- **Infrastructure**: Has helpers for things like password hashing and JWT tokens. These are used by the usecase or delivery layers.
+- **Why?** This keeps your code organized, easy to test, and easy to change later. Each part has one job.
 
 ## MongoDB Setup
 
@@ -37,7 +47,7 @@ task-manager/
 - **Body (JSON):**
   ```json
   {
-    "username": "Naomi",
+    "email": "naomi@gmail.com",
     "password": "yourpassword"
   }
   ```
@@ -56,7 +66,7 @@ task-manager/
 - **Body (JSON):**
   ```json
   {
-    "username": "Naomi",
+    "email": "naomi@gmail.com",
     "password": "yourpassword"
   }
   ```

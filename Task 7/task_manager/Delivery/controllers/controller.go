@@ -4,6 +4,7 @@ import (
 	"net/http"
 	domain "task_manager/Domain"
 	infrastructure "task_manager/Infrastructure"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,46 +18,44 @@ func NewUserController (userUsecase domain.UserUsecase) *UserController{
 	return &UserController{userUsecase:userUsecase}
 }
 
-func (uc *UserController) Register(c *gin.Context){
+type UserDTO struct {
+	Email string `json:"email"`
+	Password string `json:"password"`
+}
+func (uc *UserController) ChangeToDomain(userDTO *UserDTO) *domain.User{
 	var user domain.User
-	err:=c.ShouldBindJSON(&user)
+	user.Email = userDTO.Email
+	user.Password = userDTO.Password
+	return &user
+}
+
+func (uc *UserController) Register(c *gin.Context){
+	var userDTO UserDTO
+	err:=c.ShouldBindJSON(&userDTO)
 	if err!=nil{
 		c.IndentedJSON(http.StatusBadRequest , gin.H{"error":"Invalid input"})
 		return 
 	}
-	hashed , err := infrastructure.HashPassword(user.Password)
+	user :=uc.ChangeToDomain(&userDTO)
+	err =uc.userUsecase.RegisterUser(user)
 	if err != nil{
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error":"Failed to hash password"})
+		c.IndentedJSON(http.StatusBadRequest,gin.H{"error":err.Error()})
 		return
-	}
-	user.Password = hashed
-	err = uc.userUsecase.RegisterUser(&user)
-	if err != nil{
-		c.IndentedJSON(http.StatusBadRequest , gin.H{"error": err.Error()})
-		return 
 	}
 	c.IndentedJSON(http.StatusOK , gin.H{"message":"User registered successfully"})
 
 }
 
 func (uc *UserController) Login (c *gin.Context){
-	var input struct{
-		UserName string `json:"username"`
-		Password string `json:"password"`
-	}
-	err:=c.ShouldBindJSON(&input)
+	var userDTO UserDTO
+	err:=c.ShouldBindJSON(&userDTO)
 	if err!=nil{
 		c.IndentedJSON(http.StatusBadRequest , gin.H{"error":"Invalid input"})
 		return 
 	}
-	user , err := uc.userUsecase.LoginUser(input.UserName,input.Password)
+	user , err := uc.userUsecase.LoginUser(userDTO.Email,userDTO.Password)
 	if err != nil{
 		c.IndentedJSON(http.StatusUnauthorized ,gin.H{"error":"Invalid credentials"})
-	}
-	// Check Password
-	if !infrastructure.CheckPasswordHash(input.Password , user.Password){
-		c.IndentedJSON(http.StatusUnauthorized , gin.H{"error":"Invalid credentials"})
-		return
 	}
 	//Generate JWT token
 	token , err := infrastructure.GenerateJWT(user.ID , user.Role)
@@ -105,22 +104,37 @@ type TaskController struct{
 func NewTaskController(taskUsecase domain.TaskUsecase)*TaskController{
 	return &TaskController{taskUsecase:taskUsecase}
 }
+type TaskDTO struct{
+	Title string `json:"title"`
+	Description string `json:"description"`
+	Date string `json:"date"`
+	Status string `json:"status"`
+}
 
-func (tc *TaskController) CreateTask (c *gin.Context){
+func (tc *TaskController)ChangeTaskToDomain(taskDTO *TaskDTO , userID string)*domain.Task{
 	var task domain.Task
-	err:=c.ShouldBindJSON(&task)
+	task.Title  = taskDTO.Title
+	task.Description = taskDTO.Description
+	task.Date = taskDTO.Date
+	task.Status = taskDTO.Status
+	task.UserID = userID
+	return &task
+}
+func (tc *TaskController) CreateTask (c *gin.Context){
+	var taskDTO TaskDTO
+	err:=c.ShouldBindJSON(&taskDTO)
 	if err!=nil{
 		c.IndentedJSON(http.StatusBadRequest , gin.H{"error":"Invalid input"})
 		return
 	}
-	//Get user_id from the context (set by asuth middleware)
+	//Get user_id from the context (set by auth middleware)
 	userID , ok :=c.Get("user_id")
 	if !ok {
 		c.IndentedJSON(http.StatusUnauthorized , gin.H{"error":"User not authenticated"})
 		return 
 	}
-	task.UserID = userID.(string)
-	err= tc.taskUsecase.CreateTask(&task)
+	task :=tc.ChangeTaskToDomain(&taskDTO , userID.(string))
+	err= tc.taskUsecase.CreateTask(task)
 	if err!=nil{
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error":err.Error()})
 		return
@@ -151,21 +165,30 @@ func (tc *TaskController)GetTaskByID (c *gin.Context){
     c.IndentedJSON(http.StatusOK, task)
 }
 
-func (tc *TaskController)UpdateTask(c *gin.Context){
-	id := c.Param("id")
-    var task domain.Task
-    err := c.ShouldBindJSON(&task)
-	if err != nil {
-        c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+func (tc *TaskController) UpdateTask(c *gin.Context) {
+    id := c.Param("id")
+    var taskDTO TaskDTO
+    if err := c.ShouldBindJSON(&taskDTO); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
         return
     }
-    task.ID = id
-    err = tc.taskUsecase.UpdateTask(&task)
+    // Fetch the existing task to keep the original userID
+    existingTask, err := tc.taskUsecase.GetTaskByID(id)
     if err != nil {
-        c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
         return
     }
-    c.IndentedJSON(http.StatusOK, gin.H{"message": "Task updated successfully"})
+    // Only update allowed fields
+    existingTask.Title = taskDTO.Title
+    existingTask.Description = taskDTO.Description
+    existingTask.Date = taskDTO.Date
+    existingTask.Status = taskDTO.Status
+    err = tc.taskUsecase.UpdateTask(existingTask)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"message": "Task updated successfully"})
 }
 func (tc *TaskController)DeleteTask(c *gin.Context){
 	id:=c.Param("id")

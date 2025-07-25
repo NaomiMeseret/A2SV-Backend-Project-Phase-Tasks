@@ -5,10 +5,10 @@ import (
 	"log"
 	"task_manager/Delivery/controllers"
 	"task_manager/Delivery/routers"
+	infrastructure "task_manager/Infrastructure"
 	repositories "task_manager/Repositories"
 	usecases "task_manager/Usecases"
-	
-	"github.com/gin-gonic/gin"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -25,21 +25,18 @@ func main(){
 	taskRepo:=repositories.NewMongoTaskReposistory(taskCollection)
 	userRepo := repositories.NewMongoUserReposistory(userCollection)
 	
+	//Set Up Password Service
+	passwordService :=infrastructure.NewPasswordService()
 	//Set up usecases
 	taskUsecase := usecases.NewTaskUsecase(taskRepo)
-	userUsecase := usecases.NewUserUsecase(userRepo)
+	userUsecase := usecases.NewUserUsecase(userRepo, passwordService)
 
 	//Set up controllers
 	taskController:=controllers.NewTaskController(taskUsecase)
 	userController := controllers.NewUserController(userUsecase)
 
 	//Set up Gin router and routes
-	r:=gin.Default()
-	routers.BuildRoutes(r, taskController , userController)
+	routers.InitRouter(taskController , userController)
 
-	//Start the server
-	err= r.Run(":8080")
-	if err!=nil{
-		log.Fatal("Failed to start server: ", err)
-	}
+	
 }

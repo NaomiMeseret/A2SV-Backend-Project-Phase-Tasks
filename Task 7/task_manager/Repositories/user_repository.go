@@ -21,7 +21,7 @@ func NewMongoUserReposistory(collection *mongo.Collection) domain.UserRepository
 
 func (r *mongoUserRepository) CreateUser(user *domain.User)error{
 	userData:=bson.M{
-		"username":user.UserName,
+		"email":user.Email,
 		"password":user.Password , 
 		"role":user.Role,
 	}
@@ -36,24 +36,16 @@ func (r *mongoUserRepository) CreateUser(user *domain.User)error{
 	return nil
 }
 
-func (r *mongoUserRepository)GetUserByUsername(username string) (*domain.User , error){
-	filter := bson.M{"username":username}
-	var userData bson.M
-	err:=r.collection.FindOne(context.TODO(),filter).Decode(&userData)
-	if err!=nil{
-		return nil, err
+func (r *mongoUserRepository)UserExists(email string) (bool , error){
+	filter := bson.M{"email":email}
+	err:=r.collection.FindOne(context.TODO(),filter).Err()
+	if err == mongo.ErrNoDocuments{
+		return false, nil
 	}
-	id :=""
-	if objID, ok :=userData["_id"].(primitive.ObjectID);ok{
-		id = objID.Hex()
+	if err != nil{
+		return false , err
 	}
-	user:=&domain.User{
-		ID: id,
-		UserName: userData["username"].(string),
-		Password: userData["password"].(string),
-		Role: userData["role"].(string),	
-	}
-	return user, nil
+	return true, nil
 }
 
 func (r *mongoUserRepository)GetUserByID(id string) (*domain.User, error){
@@ -69,7 +61,7 @@ func (r *mongoUserRepository)GetUserByID(id string) (*domain.User, error){
 	}
 	user:=&domain.User{
 		ID: id,
-		UserName: userData["username"].(string),
+		Email: userData["Email"].(string),
 		Password: userData["password"].(string),
 		Role: userData["role"].(string),	
 	}
@@ -79,6 +71,26 @@ func (r *mongoUserRepository)GetUserByID(id string) (*domain.User, error){
 func (r *mongoUserRepository)CountUsers()(int , error){
 	count , err :=r.collection.CountDocuments(context.TODO() , bson.M{})
 	return int(count) , err
+}
+
+func (r *mongoUserRepository) GetUserByEmail(email string) (*domain.User, error) {
+    filter := bson.M{"email": email}
+    var userData bson.M
+    err := r.collection.FindOne(context.TODO(), filter).Decode(&userData)
+    if err != nil {
+        return nil, err
+    }
+    id := ""
+    if oid, ok := userData["_id"].(primitive.ObjectID); ok {
+        id = oid.Hex()
+    }
+    user := &domain.User{
+        ID:       id,
+        Email:    userData["email"].(string),
+        Password: userData["password"].(string),
+        Role:     userData["role"].(string),
+    }
+    return user, nil
 }
 
 func (r *mongoUserRepository)GetAllUsers()([]*domain.User , error){
@@ -99,7 +111,7 @@ func (r *mongoUserRepository)GetAllUsers()([]*domain.User , error){
 		}
 		user:= &domain.User{
 			ID: id,
-			UserName: userData["username"].(string),
+			Email: userData["email"].(string),
 			Password: userData["password"].(string),
 			Role: userData["role"].(string),
 		}
