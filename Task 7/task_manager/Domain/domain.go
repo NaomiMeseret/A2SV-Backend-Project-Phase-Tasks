@@ -18,7 +18,7 @@ type User struct{
 	Role   string 
 }
 
-type TaskRepository interface{
+type ITaskRepository interface{
 	CreateTask(task *Task)error
 	//Gets a single task by its unique ID
 	GetTaskByID(id string)(*Task , error)
@@ -28,7 +28,7 @@ type TaskRepository interface{
 	DeleteTask (id string)error
 }
 
-type UserRepository interface{
+type IUserRepository interface{
 	CreateUser(user *User) error
 	UserExists (email string) (bool , error)
 	GetUserByEmail(email string)(*User , error)
@@ -38,7 +38,7 @@ type UserRepository interface{
 	PromoteUser(id string)error
 }
 
-type TaskUsecase interface{
+type ITaskUsecase interface{
 	CreateTask(task *Task)error
 	GetTaskByID(id string)(*Task , error)
 	GetTasksByUserID (userID string) ([]*Task , error)
@@ -46,7 +46,7 @@ type TaskUsecase interface{
 	DeleteTask (id string)error
 
 }
-type UserUsecase interface{
+type IUserUsecase interface{
 	RegisterUser(user *User)error
 	LoginUser(username , password string) (*User , error)
 	GetUserByEmail(email string)(*User , error)
@@ -55,3 +55,13 @@ type UserUsecase interface{
     PromoteUser(id string) error
 
 }
+
+type IPasswordService interface {
+    HashPassword(password string) (string, error)
+    CheckPasswordHash(password, hash string) bool
+}
+
+type IJWTService interface {
+    GenerateJWT(userID, role string) (string, error)
+    ValidateJWT(tokenString string) (map[string]interface{}, error)
+} 

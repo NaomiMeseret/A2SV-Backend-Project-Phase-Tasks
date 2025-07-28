@@ -11,7 +11,7 @@ func NewPasswordService()*PasswordService{
 	return &PasswordService{}
 }
 
-// HashPassword takes a plain password and returns the bcrypt hashed password.
+
 func (ps *PasswordService) HashPassword(password string) (string , error){
 	hash , err:=bcrypt.GenerateFromPassword([]byte(password) , bcrypt.DefaultCost)
 	if err != nil{

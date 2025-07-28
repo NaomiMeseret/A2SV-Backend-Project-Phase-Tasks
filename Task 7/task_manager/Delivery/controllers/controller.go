@@ -3,19 +3,20 @@ package controllers
 import (
 	"net/http"
 	domain "task_manager/Domain"
-	infrastructure "task_manager/Infrastructure"
 
 	"github.com/gin-gonic/gin"
 )
 
 //UserController handles user-related HTTP requests.
 type UserController struct{
-	userUsecase domain.UserUsecase
+	userUsecase domain.IUserUsecase
+	jwtService domain.IJWTService
+
 }
 
 //NewUserController creates new User Controller
-func NewUserController (userUsecase domain.UserUsecase) *UserController{
-	return &UserController{userUsecase:userUsecase}
+func NewUserController (userUsecase domain.IUserUsecase  , jwtService domain.IJWTService) *UserController{
+	return &UserController{userUsecase:userUsecase , jwtService:jwtService}
 }
 
 type UserDTO struct {
@@ -58,7 +59,7 @@ func (uc *UserController) Login (c *gin.Context){
 		c.IndentedJSON(http.StatusUnauthorized ,gin.H{"error":"Invalid credentials"})
 	}
 	//Generate JWT token
-	token , err := infrastructure.GenerateJWT(user.ID , user.Role)
+	token , err := uc.jwtService.GenerateJWT(user.ID , user.Role)
 	if err!=nil{
 		c.IndentedJSON(http.StatusInternalServerError , gin.H{"error":"Failed to generate token"})
 		return 
@@ -97,11 +98,11 @@ func (uc *UserController) PromoteUser (c *gin.Context){
 
 //TaskController handles task-related HTTP requests
 type TaskController struct{
-	taskUsecase domain.TaskUsecase
+	taskUsecase domain.ITaskUsecase
 }
 
 //NewTaskController creates a new TaskController
-func NewTaskController(taskUsecase domain.TaskUsecase)*TaskController{
+func NewTaskController(taskUsecase domain.ITaskUsecase)*TaskController{
 	return &TaskController{taskUsecase:taskUsecase}
 }
 type TaskDTO struct{

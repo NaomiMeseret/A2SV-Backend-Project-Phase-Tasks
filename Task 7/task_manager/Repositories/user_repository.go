@@ -15,7 +15,7 @@ type mongoUserRepository struct{
 	collection *mongo.Collection
 }
 //NewMongoUserRepository creates a new UserRepository with the given MongoDB collection
-func NewMongoUserReposistory(collection *mongo.Collection) domain.UserRepository{
+func NewMongoUserReposistory(collection *mongo.Collection) domain.IUserRepository{
 	return &mongoUserRepository{collection:collection}
 }
 

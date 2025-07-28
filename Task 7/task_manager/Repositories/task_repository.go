@@ -15,7 +15,7 @@ type mongoTaskRepository struct{
 }
 
 //NewMongoTaskReposistory creates a new TaskRepository with the given MongoDB collection.
-func NewMongoTaskReposistory(collection *mongo.Collection)domain.TaskRepository{
+func NewMongoTaskReposistory(collection *mongo.Collection)domain.ITaskRepository{
 	return &mongoTaskRepository{collection: collection}
 }
 

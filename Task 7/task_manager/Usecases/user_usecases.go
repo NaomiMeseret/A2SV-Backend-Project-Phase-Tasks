@@ -3,18 +3,17 @@ package usecases
 import (
 	"errors"
 	domain "task_manager/Domain"
-	infrastructure "task_manager/Infrastructure"
 	"unicode"
 )
 
 //userUsecase implements the UserUsecase interface form the domain layer.
 type userUsecase struct{
-	repo domain .UserRepository
-	passwordService *infrastructure.PasswordService
+	repo domain .IUserRepository
+	passwordService domain.IPasswordService
 }
 
 //NewUserUsecase creates a new UserUsecase with the given repository
-func NewUserUsecase(repo domain.UserRepository ,passwordService *infrastructure.PasswordService)domain.UserUsecase{
+func NewUserUsecase(repo domain.IUserRepository ,passwordService domain.IPasswordService) domain.IUserUsecase{
 	return &userUsecase{repo: repo ,
 	passwordService: passwordService,}
 }
@@ -29,7 +28,7 @@ func isAllLowerCase(s string)bool{
 }
 func (u *userUsecase)RegisterUser(user *domain.User)error{
 	if !isAllLowerCase(user.Email){
-		return errors.New("emailmustbe all lower case")
+		return errors.New("email must be all lower case")
 	}
 	if user.Email == ""{
 		return errors.New("email cannot be empty")

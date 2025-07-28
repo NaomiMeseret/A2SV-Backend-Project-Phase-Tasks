@@ -6,11 +6,11 @@ import(
 )
 //taskUsecase implements the TaskUsecase interface from the domain layer
 type taskUsecase struct{
-	repo domain.TaskRepository
+	repo domain.ITaskRepository
 }
 
 //NewTaskusecase creates a new TaskUsecase with the given repository
-func NewTaskUsecase (repo domain.TaskRepository)domain.TaskUsecase{
+func NewTaskUsecase (repo domain.ITaskRepository)domain.ITaskUsecase{
 	return &taskUsecase{repo: repo}
 }
 
