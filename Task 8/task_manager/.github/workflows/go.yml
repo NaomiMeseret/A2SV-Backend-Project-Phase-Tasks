@@ -3,6 +3,9 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Task 8/task_manager
     steps:
       - uses: actions/checkout@v3
       - name: Set up Go

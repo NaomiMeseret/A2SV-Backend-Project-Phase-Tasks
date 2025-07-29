@@ -65,7 +65,7 @@ func (m *MockUserRepo) UserExists(email string) (bool, error) {
     return exists, nil
 }
 
-// MockPasswordService is a simple mock for IPasswordService used in tests
+// MockPasswordService is a simple mock for IPasswordService
 
 type MockPasswordService struct{}
 func (m *MockPasswordService) HashPassword(password string) (string, error) { 
@@ -125,6 +125,13 @@ func (suite *UserUsecaseTestSuite) TestRegisterUser_DuplicateEmail() {
 	err := suite.usecase.RegisterUser(user2)
 	assert.Error(suite.T(), err)
 	assert.Equal(suite.T(), "email already taken", err.Error())
+}
+// Test registering a user with password too short
+func (suite *UserUsecaseTestSuite) TestRegisterUser_PasswordTooShort() {
+    user := &domain.User{Email: "naomi@email.com", Password: "123"} 
+    err := suite.usecase.RegisterUser(user)
+    suite.Assert().Error(err)
+    suite.Assert().Contains(err.Error(), "password must be at least 4 characters long")
 }
 
 // Test login with correct credentials
