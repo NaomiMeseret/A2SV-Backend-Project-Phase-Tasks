@@ -1,6 +1,6 @@
 module task_manager
 
-go 1.24.4
+go 1.24
 
 require (
 	github.com/bytedance/sonic v1.11.6 // indirect
